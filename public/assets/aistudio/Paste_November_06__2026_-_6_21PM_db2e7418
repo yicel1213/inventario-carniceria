@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock de Inventario Carnicería</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
+        .card-menu { transition: all 0.2s ease; }
+        .card-menu:active { transform: scale(0.97); }
+    </style>
+</head>
+<body class="min-h-screen pb-12">
+
+    <!-- CABECERA -->
+    <header class="bg-red-950 border-b border-red-900 p-4 text-center sticky top-0 z-50 shadow-md">
+        <div class="flex items-center justify-between max-w-4xl mx-auto">
+            <div class="flex items-center space-x-3">
+                <div class="bg-red-900 p-2 rounded-xl text-white">
+                    <i class="fa-solid fa-boxes-stacked text-xl"></i>
+                </div>
+                <div class="text-left">
+                    <h1 class="text-lg font-bold text-white leading-tight">Stock de inventario carnicería</h1>
+                    <p class="text-xs text-red-200">Control de Cámara, Mural, Lotes y Vencimientos</p>
+                </div>
+            </div>
+            <button id="btn-home" onclick="goHome()" class="hidden bg-red-900 hover:bg-red-800 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center space-x-1">
+                <i class="fa-solid fa-house"></i>
+                <span>Menú</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto p-4 mt-2">
+
+        <!-- 1. MENÚ PRINCIPAL -->
+        <div id="view-menu" class="space-y-4">
+            <div class="grid grid-cols-2 gap-3">
+                <div onclick="switchTab('lista')" class="card-menu bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-col items-center justify-center text-center cursor-pointer hover:border-red-600 shadow-sm">
+                    <div class="bg-red-950/60 p-3 rounded-full text-red-400 mb-2">
+                        <i class="fa-solid fa-list text-xl"></i>
+                    </div>
+                    <span class="font-semibold text-sm">Ver lista de productos</span>
+                </div>
+                <div onclick="switchTab('camara')" class="card-menu bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-col items-center justify-center text-center cursor-pointer hover:border-red-600 shadow-sm">
+                    <div class="bg-red-950/60 p-3 rounded-full text-red-400 mb-2">
+                        <i class="fa-solid fa-snowflake text-xl"></i>
+                    </div>
+                    <span class="font-semibold text-sm">Cámara</span>
+                </div>
+                <div onclick="switchTab('mural')" class="card-menu bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-col items-center justify-center text-center cursor-pointer hover:border-red-600 shadow-sm">
+                    <div class="bg-red-950/60 p-3 rounded-full text-red-400 mb-2">
+                        <i class="fa-solid fa-store text-xl"></i>
+                    </div>
+                    <span class="font-semibold text-sm">Mural</span>
+                </div>
+                <div onclick="switchTab('ingresar')" class="card-menu bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-col items-center justify-center text-center cursor-pointer hover:border-red-600 shadow-sm">
+                    <div class="bg-red-950/60 p-3 rounded-full text-red-400 mb-2">
+                        <i class="fa-solid fa-plus-circle text-xl"></i>
+                    </div>
+                    <span class="font-semibold text-sm">Ingresar productos</span>
+                </div>
+            </div>
+            <div onclick="switchTab('alertas')" class="card-menu bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center justify-between cursor-pointer hover:border-red-600 shadow-sm">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-red-950/60 p-3 rounded-full text-red-400">
+                        <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+                    </div>
+                    <div class="text-left">
+                        <span class="font-semibold text-sm block">Alertas y Vencimientos</span>
+                        <span class="text-xs text-slate-400">Revisar productos próximos a vencer o retirar</span>
+                    </div>
+                </div>
+                <i class="fa-solid fa-chevron-right text-slate-500"></i>
+            </div>
+        </div>
+
+        <!-- 2. VISTA: LISTA DE PRODUCTOS -->
+        <div id="view-lista" class="hidden space-y-4">
+            <div class="flex justify-between items-center bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+                <div>
+                    <h2 class="font-bold text-base">Lista de Productos por Categoría</h2>
+                    <p class="text-xs text-slate-400">Resumen general separado por marca/categoría.</p>
+                </div>
+                <button onclick="openCategoryModal()" class="bg-red-600 hover:bg-red-500 text-white px-3 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-1">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Nueva Categoría</span>
+                </button>
+            </div>
+            <div id="container-categorias" class="space-y-4">
+                <!-- Se cargan dinámicamente -->
+            </div>
+        </div>
+
+        <!-- 3. VISTA: CÁMARA -->
+        <div id="view-camara" class="hidden space-y-4">
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+                <h2 class="font-bold text-base mb-1"><i class="fa-solid fa-snowflake text-blue-400 mr-2"></i>Stock en Cámara</h2>
+                <p class="text-xs text-slate-400 mb-4">Control rápido del almacenamiento en frío.</p>
+                <div id="list-camara" class="space-y-3"></div>
+            </div>
+        </div>
+
+        <!-- 4. VISTA: MURAL -->
+        <div id="view-mural" class="hidden space-y-4">
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+                <h2 class="font-bold text-base mb-1"><i class="fa-solid fa-store text-emerald-400 mr-2"></i>Stock en Mural</h2>
+                <p class="text-xs text-slate-400 mb-4">Control de exhibición y venta.</p>
+                <div id="list-mural" class="space-y-3"></div>
+            </div>
+        </div>
+
+        <!-- 5. VISTA: INGRESAR PRODUCTOS -->
+        <div id="view-ingresar" class="hidden space-y-4">
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+                <h2 class="font-bold text-base mb-1">Ingresar Nuevo Lote / Producto</h2>
+                <p class="text-xs text-slate-400 mb-4">Complete los datos de stock, categoría y fechas.</p>
+                
+                <form id="form-producto" onsubmit="guardarProducto(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Categoría / Marca</label>
+                        <select id="prod-categoria" onchange="checkOtraCategoria(this)" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm focus:outline-none focus:border-red-500" required>
+                            <option value="">Seleccione categoría...</option>
+                            <option value="Farmer">Farmer</option>
+                            <option value="Pampa Verde">Pampa Verde</option>
+                            <option value="El Origen">El Origen</option>
+                            <option value="Campo Osorno">Campo Osorno</option>
+                            <option value="OTRO">Otro (Escribir nueva...)</option>
+                        </select>
+                    </div>
+
+                    <div id="div-otra-categoria" class="hidden">
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Escribir Nueva Categoría</label>
+                        <input type="text" id="prod-otra-categoria" placeholder="Ej. Marca Propia" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm focus:outline-none focus:border-red-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Nombre del Corte</label>
+                        <select id="prod-nombre" onchange="checkOtroCorte(this)" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm focus:outline-none focus:border-red-500" required>
+                            <option value="">Seleccione corte...</option>
+                            <option value="Lomo Vetado">Lomo Vetado</option>
+                            <option value="Lomo Liso">Lomo Liso</option>
+                            <option value="Asado Carnicero">Asado Carnicero</option>
+                            <option value="Sobrecostilla">Sobrecostilla</option>
+                            <option value="Punta Ganso">Punta Ganso</option>
+                            <option value="OTRO">Otro (Escribir nuevo corte...)</option>
+                        </select>
+                    </div>
+
+                    <div id="div-otro-corte" class="hidden">
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Escribir Nombre del Corte</label>
+                        <input type="text" id="prod-otro-corte" placeholder="Ej. Entraña" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm focus:outline-none focus:border-red-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Ubicación de Stock</label>
+                        <select id="prod-ubicacion" onchange="toggleUbicacionStock(this.value)" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm focus:outline-none focus:border-red-500" required>
+                            <option value="Camara">Cámara</option>
+                            <option value="Mural">Mural</option>
+                            <option value="Ambos">Ambos</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3" id="stock-inputs-container">
+                        <div id="box-stock-camara">
+                            <label class="block text-xs font-semibold text-slate-300 mb-1">Stock Cámara (Cajas)</label>
+                            <input type="number" id="prod-stock-camara" min="0" value="0" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm focus:outline-none focus:border-red-500">
+                        </div>
+                        <div id="box-stock-mural" class="hidden">
+                            <label class="block text-xs font-semibold text-slate-300 mb-1">Stock Mural (Cajas)</label>
+                            <input type="number" id="prod-stock-mural" min="0" value="0" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm focus:outline-none focus:border-red-500">
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN HASTA 10 FECHAS -->
+                    <div class="border-t border-slate-800 pt-3 mt-3">
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="text-xs font-semibold text-red-400 uppercase tracking-wider">Fechas y Vencimientos (Hasta 10)</label>
+                            <button type="button" onclick="agregarFilaFecha()" class="bg-slate-800 hover:bg-slate-700 text-xs px-2.5 py-1 rounded-lg border border-slate-700 text-slate-200">
+                                <i class="fa-solid fa-plus mr-1"></i> Añadir Fecha
+                            </button>
+                        </div>
+                        <div id="fechas-container" class="space-y-3">
+                            <!-- Fila base -->
+                            <div class="bg-slate-800/50 p-3 rounded-xl border border-slate-700/60 relative fecha-row space-y-2">
+                                <div>
+                                    <label class="block text-[10px] text-slate-400">¿Cuándo vence?</label>
+                                    <input type="date" class="f-vencimiento w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs">
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="block text-[10px] text-slate-400">Días antes para retirar</label>
+                                        <input type="number" min="0" value="2" class="f-retiro w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] text-slate-400">Días antes de alerta</label>
+                                        <input type="number" min="0" value="3" class="f-alerta w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-3 rounded-xl text-sm transition shadow-lg mt-4">
+                        Guardar Producto
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 6. VISTA: ALERTAS -->
+        <div id="view-alertas" class="hidden space-y-4">
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+                <h2 class="font-bold text-base mb-1"><i class="fa-solid fa-triangle-exclamation text-amber-400 mr-2"></i>Panel de Alertas</h2>
+                <p class="text-xs text-slate-400 mb-4">Productos próximos a retiro o vencimiento.</p>
+                <div id="list-alertas" class="space-y-3"></div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- MODAL NUEVA CATEGORÍA -->
+    <div id="modal-categoria" class="fixed inset-0 bg-black/70 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl p-5 space-y-4">
+            <h3 class="font-bold text-base">Agregar Nueva Categoría</h3>
+            <input type="text" id="nueva-cat-input" placeholder="Nombre de la categoría..." class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm focus:outline-none focus:border-red-500">
+            <div class="flex space-x-2">
+                <button onclick="closeCategoryModal()" class="w-1/2 bg-slate-800 hover:bg-slate-700 py-2.5 rounded-xl text-xs font-semibold">Cancelar</button>
+                <button onclick="salvarNuevaCategoria()" class="w-1/2 bg-red-600 hover:bg-red-500 py-2.5 rounded-xl text-xs font-semibold">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT DE FUNCIONAMIENTO Y PERSISTENCIA -->
+    <script>
+        let db = JSON.parse(localStorage.getItem('carniceria_db')) || {
+            categorias: ['Farmer', 'Pampa Verde', 'El Origen', 'Campo Osorno'],
+            cortes: ['Lomo Vetado', 'Lomo Liso', 'Asado Carnicero', 'Sobrecostilla', 'Punta Ganso'],
+            productos: []
+        };
+
+        function saveData() {
+            localStorage.setItem('carniceria_db', JSON.stringify(db));
+        }
+
+        function switchTab(tab) {
+            ['menu', 'lista', 'camara', 'mural', 'ingresar', 'alertas'].forEach(t => {
+                document.getElementById('view-' + t).classList.add('hidden');
+            });
+            document.getElementById('view-' + tab).classList.remove('hidden');
+            document.getElementById('btn-home').classList.toggle('hidden', tab === 'menu');
+            
+            if(tab === 'lista') renderLista();
+            if(tab === 'camara') renderCamara();
+            if(tab === 'mural') renderMural();
+            if(tab === 'alertas') renderAlertas();
+            if(tab === 'ingresar') actualizarSelectsForm();
+        }
+
+        function goHome() {
+            switchTab('menu');
+        }
+
+        function actualizarSelectsForm() {
+            const catSel = document.getElementById('prod-categoria');
+            let currentCat = catSel.value;
+            catSel.innerHTML = '<option value="">Seleccione categoría...</option>';
+            db.categorias.forEach(c => {
+                catSel.innerHTML += `<option value="${c}">${c}</option>`;
+            });
+            catSel.innerHTML += `<option value="OTRO">Otro (Escribir nueva...)</option>`;
+            catSel.value = currentCat;
+
+            const corSel = document.getElementById('prod-nombre');
+            let currentCor = corSel.value;
+            corSel.innerHTML = '<option value="">Seleccione corte...</option>';
+            db.cortes.forEach(c => {
+                corSel.innerHTML += `<option value="${c}">${c}</option>`;
+            });
+            corSel.innerHTML += `<option value="OTRO">Otro (Escribir nuevo corte...)</option>`;
+            corSel.value = currentCor;
+        }
+
+        function checkOtraCategoria(el) {
+            document.getElementById('div-otra-categoria').classList.toggle('hidden', el.value !== 'OTRO');
+        }
+
+        function checkOtroCorte(el) {
+            document.getElementById('div-otro-corte').classList.toggle('hidden', el.value !== 'OTRO');
+        }
+
+        function toggleUbicacionStock(val) {
+            const cCam = document.getElementById('box-stock-camara');
+            const cMur = document.getElementById('box-stock-mural');
+            if(val === 'Camara') { cCam.classList.remove('hidden'); cMur.classList.add('hidden'); }
+            else if(val === 'Mural') { cCam.classList.add('hidden'); cMur.classList.remove('hidden'); }
+            else { cCam.classList.remove('hidden'); cMur.classList.remove('hidden'); }
+        }
+
+        function agregarFilaFecha() {
+            const container = document.getElementById('fechas-container');
+            if(container.children.length >= 10) {
+                alert('Máximo 10 fechas permitidas.');
+                return;
+            }
+            const div = document.createElement('div');
+            div.className = "bg-slate-800/50 p-3 rounded-xl border border-slate-700/65 relative fecha-row space-y-2";
+            div.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <span class="text-[10px] text-red-400 font-bold">Fecha adicional</span>
+                    <button type="button" onclick="this.parentElement.parentElement.remove()" class="text-red-400 text-xs"><i class="fa-solid fa-trash"></i></button>
+                </div>
+                <div>
+                    <label class="block text-[10px] text-slate-400">¿Cuándo vence?</label>
+                    <input type="date" class="f-vencimiento w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-[10px] text-slate-400">Días antes para retirar</label>
+                        <input type="number" min="0" value="2" class="f-retiro w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-slate-400">Días antes de alerta</label>
+                        <input type="number" min="0" value="3" class="f-alerta w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs">
+                    </div>
+                </div>`;
+            container.appendChild(div);
+        }
+
+        function guardarProducto(e) {
+            e.preventDefault();
+            let cat = document.getElementById('prod-categoria').value;
+            if(cat === 'OTRO') {
+                cat = document.getElementById('prod-otra-categoria').value.trim();
+                if(cat && !db.categorias.includes(cat)) db.categorias.push(cat);
+            }
+
+            let nombre = document.getElementById('prod-nombre').value;
+            if(nombre === 'OTRO') {
+                nombre = document.getElementById('prod-otro-corte').value.trim();
+                if(nombre && !db.cortes.includes(nombre)) db.cortes.push(nombre);
+            }
+
+            const ubicacion = document.getElementById('prod-ubicacion').value;
+            const stockCamara = (ubicacion === 'Camara' || ubicacion === 'Ambos') ? parseInt(document.getElementById('prod-stock-camara').value) || 0 : 0;
+            const stockMural = (ubicacion === 'Mural' || ubicacion === 'Ambos') ? parseInt(document.getElementById('prod-stock-mural').value) || 0 : 0;
+
+            const filasFechas = document.querySelectorAll('.fecha-row');
+            let lotesFechas = [];
+            filasFechas.forEach(f => {
+                const v = f.querySelector('.f-vencimiento').value;
+                const r = f.querySelector('.f-retiro').value;
+                const a = f.querySelector('.f-alerta').value;
+                if(v) {
+                    lotesFechas.push({ vencimiento: v, retiroDias: r, alertaDias: a });
+                }
+            });
+
+            db.productos.push({
+                id: Date.now(),
+                categoria: cat || 'General',
+                nombre: nombre || 'Corte',
+                stockCamara,
+                stockMural,
+                fechas: lotesFechas
+            });
+
+            saveData();
+            alert('¡Producto guardado exitosamente!');
+            document.getElementById('form-producto').reset();
+            document.getElementById('fechas-container').innerHTML = `
+                <div class="bg-slate-800/50 p-3 rounded-xl border border-slate-700/60 relative fecha-row space-y-2">
+                    <div>
+                        <label class="block text-[10px] text-slate-400">¿Cuándo vence?</label>
+                        <input type="date" class="f-vencimiento w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[10px] text-slate-400">Días antes para retirar</label>
+                            <input type="number" min="0" value="2" class="f-retiro w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-400">Días antes de alerta</label>
+                            <input type="number" min="0" value="3" class="f-alerta w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs">
+                        </div>
+                    </div>
+                </div>`;
+            switchTab('lista');
+        }
+
+        function renderLista() {
+            const container = document.getElementById('container-categorias');
+            container.innerHTML = '';
+
+            db.categorias.forEach(cat => {
+                const prods = db.productos.filter(p => p.categoria === cat);
+                let html = `
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden mb-4">
+                        <div class="bg-red-950/60 p-3 border-b border-red-950 flex justify-between items-center">
+                            <span class="font-bold text-sm text-red-200"><i class="fa-solid fa-tag mr-2"></i>${cat}</span>
+                            <button onclick="eliminarCategoria('${cat}')" class="text-red-400 hover:text-red-300 text-xs"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                        <div class="p-3 overflow-x-auto">
+                `;
+
+                if(prods.length === 0) {
+                    html += `<p class="text-xs text-slate-500 text-center py-2">No hay productos en esta categoría.</p>`;
+                } else {
+                    html += `
+                        <table class="w-full text-left text-xs">
+                            <thead>
+                                <tr class="text-slate-400 border-b border-slate-800">
+                                    <th class="pb-2">Producto</th>
+                                    <th class="pb-2">Cámara</th>
+                                    <th class="pb-2">Mural</th>
+                                    <th class="pb-2">Vencimiento(s)</th>
+                                    <th class="pb-2 text-right">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800/60">
+                    `;
+                    prods.forEach(p => {
+                        let fechasTxt = p.fechas.map(f => f.vencimiento).join(', ') || 'Sin fechas';
+                        html += `
+                            <tr>
+                                <td class="py-2 font-medium">${p.nombre}</td>
+                                <td class="py-2 text-blue-400">${p.stockCamara} cjas</td>
+                                <td class="py-2 text-emerald-400">${p.stockMural} cjas</td>
+                                <td class="py-2 text-slate-300">${fechasTxt}</td>
+                                <td class="py-2 text-right">
+                                    <button onclick="eliminarProducto(${p.id})" class="text-red-400 hover:text-red-300 p-1"><i class="fa-solid fa-trash"></i></button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    html += `</tbody></table>`;
+                }
+                html += `</div></div>`;
+                container.innerHTML += html;
+            });
+        }
+
+        function renderCamara() {
+            const list = document.getElementById('list-camara');
+            list.innerHTML = '';
+            const prods = db.productos.filter(p => p.stockCamara > 0);
+            if(prods.length === 0) { list.innerHTML = '<p class="text-xs text-slate-500">No hay stock en cámara.</p>'; return; }
+            prods.forEach(p => {
+                list.innerHTML += `
+                    <div class="bg-slate-800/60 p-3 rounded-xl border border-slate-700/6kn flex justify-between items-center">
+                        <div>
+                            <span class="font-bold text-sm block">${p.nombre}</span>
+                            <span class="text-xs text-slate-400">Categoría: ${p.categoria}</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-blue-400 font-bold text-sm">${p.stockCamara} cajas</span>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function renderMural() {
+            const list = document.getElementById('list-mural');
+            list.innerHTML = '';
+            const prods = db.productos.filter(p => p.stockMural > 0);
+            if(prods.length === 0) { list.innerHTML = '<p class="text-xs text-slate-500">No hay stock en mural.</p>'; return; }
+            prods.forEach(p => {
+                list.innerHTML += `
+                    <div class="bg-slate-800/60 p-3 rounded-xl border border-slate-700/60 flex justify-between items-center">
+                        <div>
+                            <span class="font-bold text-sm block">${p.nombre}</span>
+                            <span class="text-xs text-slate-400">Categoría: ${p.categoria}</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-emerald-400 font-bold text-sm">${p.stockMural} cajas</span>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function renderAlertas() {
+            const list = document.getElementById('list-alertas');
+            list.innerHTML = '';
+            let count = 0;
+            const hoy = new Date();
+
+            db.productos.forEach(p => {
+                p.fechas.forEach(f => {
+                    if(!f.vencimiento) return;
+                    const fVenc = new Date(f.vencimiento);
+                    const diffTime = fVenc - hoy;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    
+                    if(diffDays <= parseInt(f.alertaDias)) {
+                        count++;
+                        list.innerHTML += `
+                            <div class="bg-amber-950/30 border border-amber-900/50 p-3 rounded-xl flex justify-between items-center">
+                                <div>
+                                    <span class="font-bold text-sm text-amber-200 block">${p.nombre} (${p.categoria})</span>
+                                    <span class="text-xs text-slate-300">Vence: ${f.vencimiento} (Quedan ${diffDays} días)</span>
+                                </div>
+                                <span class="bg-amber-900/60 text-amber-200 text-[10px] px-2 py-1 rounded-md font-bold">ALERTA</span>
+                            </div>`;
+                    }
+                });
+            });
+
+            if(count === 0) {
+                list.innerHTML = '<p class="text-xs text-slate-500 text-center py-4">No hay alertas activas en este momento.</p>';
+            }
+        }
+
+        function eliminarProducto(id) {
+            if(confirm('¿Deseas eliminar este producto?')) {
+                db.productos = db.productos.filter(p => p.id !== id);
+                saveData();
+                renderLista();
+            }
+        }
+
+        function eliminarCategoria(cat) {
+            if(confirm(`¿Deseas eliminar la categoría "${cat}"?`)) {
+                db.categorias = db.categorias.filter(c => c !== cat);
+                saveData();
+                renderLista();
+            }
+        }
+
+        function openCategoryModal() {
+            document.getElementById('modal-categoria').classList.remove('hidden');
+        }
+
+        function closeCategoryModal() {
+            document.getElementById('modal-categoria').classList.add('hidden');
+            document.getElementById('nueva-cat-input').value = '';
+        }
+
+        function salvarNuevaCategoria() {
+            const val = document.getElementById('nueva-cat-input').value.trim();
+            if(val && !db.categorias.includes(val)) {
+                db.categorias.push(val);
+                saveData();
+                closeCategoryModal();
+                renderLista();
+            } else {
+                alert('Escribe un nombre válido o que no exista.');
+            }
+        }
+    </script>
+</body>
+</html>

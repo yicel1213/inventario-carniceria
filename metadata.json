@@ -1,0 +1,6 @@
+{
+  "name": "Stock Carnicería",
+  "description": "Control de inventario, cámara, mural, lotes y vencimientos para carnicerías.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
